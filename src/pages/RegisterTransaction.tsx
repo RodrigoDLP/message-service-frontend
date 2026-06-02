@@ -4,12 +4,11 @@ import type { RawTransaction } from "../api";
 
 const RegisterTransaction: React.FC = () => {
   const [form, setForm] = useState<RawTransaction>({
-    amount: 0,
-    creditcard: 0,
+    amount: "" as unknown as number,       // inicial vacío
+    creditcard: "" as unknown as number,   // inicial vacío
     codigo: "",
-    email: "",
-    // Ajuste: formato compatible con <input type="datetime-local">
-    datetime: new Date().toISOString().slice(0, 16),
+    email: "",                             // opcional
+    datetime: new Date().toISOString().slice(0, 16), // formato compatible con <input type="datetime-local">
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -18,7 +17,26 @@ const RegisterTransaction: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const result = await registerTransaction(form);
+
+    // Validaciones básicas
+    if (
+      !form.amount ||
+      Number(form.amount) <= 0 ||
+      !form.creditcard ||
+      !form.codigo.trim() ||
+      !form.datetime
+    ) {
+      alert("Por favor complete monto, número de tarjeta, código y fecha.");
+      return;
+    }
+
+    // Construir payload sin email si está vacío
+    const payload: any = { ...form };
+    if (!form.email || form.email.trim() === "") {
+      delete payload.email;
+    }
+
+    const result = await registerTransaction(payload);
     alert("Transacción registrada:\n" + JSON.stringify(result, null, 2));
   };
 
@@ -41,6 +59,8 @@ const RegisterTransaction: React.FC = () => {
             value={form.amount}
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
+            required
+            min="1"
           />
         </div>
 
@@ -59,6 +79,8 @@ const RegisterTransaction: React.FC = () => {
             value={form.creditcard}
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
+            required
+            min="1"
           />
         </div>
 
@@ -77,6 +99,7 @@ const RegisterTransaction: React.FC = () => {
             value={form.codigo}
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
+            required
           />
         </div>
 
@@ -112,6 +135,7 @@ const RegisterTransaction: React.FC = () => {
             value={form.datetime}
             onChange={handleChange}
             className="w-full border rounded px-3 py-2"
+            required
           />
         </div>
 
